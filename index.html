@@ -1,193 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        h1 {
-            text-align: center;
-            color: #007bff; /* Blue header color */
-        }
-
-        #game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            margin: 20px auto;
-            border: 3px solid #007bff; /* Blue border */
-            border-radius: 5px;
-            background-color: #fff; /* White background */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow */
-        }
-
-        .cell {
-            width: 100px;
-            height: 100px;
-            border: 1px solid #ccc; /* Light gray border */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .cell:hover {
-            background-color: #f8f9fa; /* Light gray background on hover */
-        }
-
-        #message {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: bold;
-            color: #007bff; /* Blue message color */
-            display: none; /* Hide message initially */
-        }
-
-        #message.show {
-            display: block; /* Show message when necessary */
-        }
-
-        button {
-            display: block;
-            margin: 10px auto;
-            padding: 10px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff; /* Blue button background */
-            color: #fff; /* White button text */
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .square {
+      width: 100px;
+      height: 100px;
+      font-size: 48px;
+      text-align: center;
+      line-height: 100px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>Tic Tac Toe</h1>
-    <div id="game-board"></div>
-    <div id="message"></div>
-    <button id="single-player">Single Player</button>
-    <button id="two-players">Two Players</button>
-    <button id="undo">Undo</button>
+  <div class="container mt-5">
+    <h1 class="text-center">Tic Tac Toe</h1>
+    <div class="row justify-content-center">
+      <div id="board" class="border border-dark p-3">
+        <div class="row">
+          <div class="col-4 square" onclick="makeMove(0, 0)"></div>
+          <div class="col-4 square border-left border-dark" onclick="makeMove(0, 1)"></div>
+          <div class="col-4 square border-left border-dark" onclick="makeMove(0, 2)"></div>
+        </div>
+        <div class="row border-top border-dark">
+          <div class="col-4 square border-top" onclick="makeMove(1, 0)"></div>
+          <div class="col-4 square border-left border-top border-dark" onclick="makeMove(1, 1)"></div>
+          <div class="col-4 square border-left border-top border-dark" onclick="makeMove(1, 2)"></div>
+        </div>
+        <div class="row border-top border-dark">
+          <div class="col-4 square border-top" onclick="makeMove(2, 0)"></div>
+          <div class="col-4 square border-left border-top border-dark" onclick="makeMove(2, 1)"></div>
+          <div class="col-4 square border-left border-top border-dark" onclick="makeMove(2, 2)"></div>
+        </div>
+      </div>
+    </div>
+    <div id="result" class="text-center mt-3"></div>
+    <div class="text-center mt-3">
+      <button class="btn btn-primary" onclick="resetGame()">Reset Game</button>
+    </div>
+  </div>
 
-    <script>
-        const board = document.getElementById('game-board');
-        const message = document.getElementById('message');
-        const singlePlayerBtn = document.getElementById('single-player');
-        const twoPlayersBtn = document.getElementById('two-players');
-        const undoBtn = document.getElementById('undo');
-        const cells = [];
+  <script>
+    let currentPlayer = "X";
+    let board = [
+      ["", "", ""],
+      ["", "", ""],
+      ["", "", ""]
+    ];
 
-        let currentPlayer = 'X';
-        let gameMode = '';
-
-        // Initialize game board
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.dataset.row = i;
-                cell.dataset.col = j;
-                cell.addEventListener('click', handleCellClick);
-                cells.push(cell);
-                board.appendChild(cell);
-            }
+    function makeMove(row, col) {
+      if (board[row][col] === "") {
+        board[row][col] = currentPlayer;
+        document.getElementById(`board`).children[row].children[col].innerHTML = currentPlayer;
+        if (checkWinner()) {
+          document.getElementById('result').innerText = `Player ${currentPlayer} wins!`;
+          return;
         }
-
-        // Event listener for game mode selection
-        singlePlayerBtn.addEventListener('click', () => {
-            gameMode = 'single-player';
-            startGame();
-        });
-
-        twoPlayersBtn.addEventListener('click', () => {
-            gameMode = 'two-players';
-            startGame();
-        });
-
-        // Event listener for undo button
-        undoBtn.addEventListener('click', undoMove);
-
-        // Function to start the game
-        function startGame() {
-            currentPlayer = 'X';
-            message.textContent = Player ${currentPlayer}'s turn;
-            message.classList.remove('show'); // Hide message
-            cells.forEach(cell => {
-                cell.textContent = '';
-                cell.style.pointerEvents = 'auto'; // Enable cell clicks
-            });
+        if (checkDraw()) {
+          document.getElementById('result').innerText = `It's a draw!`;
+          return;
         }
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+      }
+    }
 
-        // Function to handle cell click
-        function handleCellClick(event) {
-            const cell = event.target;
-            if (cell.textContent === '' && !checkWinner()) {
-                cell.textContent = currentPlayer;
-                if (checkWinner()) {
-                    message.textContent = Player ${currentPlayer} wins! 🎉;
-                    message.classList.add('show'); // Show message
-                    cells.forEach(cell => cell.style.pointerEvents = 'none'); // Disable further clicks
-                } else if (checkDraw()) {
-                    message.textContent = "It's a draw!";
-                    message.classList.add('show'); // Show message
-                } else {
-                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                    message.textContent = Player ${currentPlayer}'s turn;
-                }
-            }
+    function checkWinner() {
+      // Check rows
+      for (let i = 0; i < 3; i++) {
+        if (board[i][0] === board[i][1] && board[i][1] === board[i][2] && board[i][0] !== "") {
+          return true;
         }
+      }
+      // Check columns
+      for (let i = 0; i < 3; i++) {
+        if (board[0][i] === board[1][i] && board[1][i] === board[2][i] && board[0][i] !== "") {
+          return true;
+        }
+      }
+      // Check diagonals
+      if ((board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[0][0] !== "") ||
+          (board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[0][2] !== "")) {
+        return true;
+      }
+      return false;
+    }
 
-        // Function to check for a winner
-        function checkWinner() {
-            const winningCombinations = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-
-            for (const combo of winningCombinations) {
-                const [a, b, c] = combo;
-                if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
-                    return true;
-                }
-            }
+    function checkDraw() {
+      for (let row of board) {
+        for (let cell of row) {
+          if (cell === "") {
             return false;
+          }
         }
+      }
+      return true;
+    }
 
-        // Function to check for a draw
-        function checkDraw() {
-            return cells.every(cell => cell.textContent !== '');
+    function resetGame() {
+      currentPlayer = "X";
+      board = [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""]
+      ];
+      document.getElementById('result').innerText = "";
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          document.getElementById(`board`).children[i].children[j].innerHTML = "";
         }
-
-        // Function to undo the last move
-        function undoMove() {
-            if (gameMode === 'two-players') {
-                const lastMove = cells.filter(cell => cell.textContent !== '').pop();
-                if (lastMove) {
-                    lastMove.textContent = '';
-                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                    message.textContent = Player ${currentPlayer}'s turn;
-                }
-            }
-        }
-    </script>
+      }
+    }
+  </script>
 </body>
 </html>
